@@ -39,6 +39,20 @@ public class WallServlet extends HttpServlet {
 		resp.getWriter().println(job.toString());
 	}
 
+	private String MD5(String md5) {
+		try {
+			java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
+			byte[] array = md.digest(md5.getBytes());
+			StringBuffer sb = new StringBuffer();
+			for (int i = 0; i < array.length; ++i) {
+				sb.append(Integer.toHexString((array[i] & 0xFF) | 0x100).substring(1,3));
+			}
+			return sb.toString();
+		} catch (java.security.NoSuchAlgorithmException e) {
+		}
+		return null;
+	}
+
 	@Override
 	// Implements POST http://localhost:8080/waslab03/tweets/:id/likes
 	//        and POST http://localhost:8080/waslab03/tweets
@@ -63,12 +77,15 @@ public class WallServlet extends HttpServlet {
 			/*      ^
 		      The String variable body contains the sent (JSON) Data. 
 		      Complete the implementation below.*/
-			
+
 			try {
 				JSONObject jo = new JSONObject(body);
 				String ntAuthor = jo.getString("author");
 				String ntText = jo.getString("text");
 				JSONObject jo2 = new JSONObject(Database.insertTweet(ntAuthor, ntText));
+				String ntToken = jo2.get("id").toString();
+				//************************************************************************************************************
+				jo2.put("token", MD5(ntToken));
 				resp.getWriter().println(jo2.toString());
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
@@ -76,14 +93,14 @@ public class WallServlet extends HttpServlet {
 			} 
 		}
 	}
-	
+
 	@Override
 	// Implements DELETE http://localhost:8080/waslab03/tweets/:id
 	public void doDelete(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException, ServletException {
-		
+
 		boolean error = false;
-		
+
 		try {
 			String uri = req.getRequestURI();
 			long id = Long.valueOf(uri.substring(TWEETS_URI.length()));
@@ -92,7 +109,7 @@ public class WallServlet extends HttpServlet {
 		catch (Exception e) {
 			new ServletException("Failed when parsing");
 		}
-		
+
 		if (error) new ServletException("Failed when delete");
 	}
 
