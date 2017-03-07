@@ -90,9 +90,11 @@ function tweetHandler() {
 	req = new XMLHttpRequest();
 	req.open('POST', tweetsURI, /*async*/true);
 	req.onreadystatechange = function() {
-		var nt = JSON.parse(req.responseText);
-		var temp = document.getElementById("tweet_list").innerHTML;
-		document.getElementById("tweet_list").innerHTML = getTweetHTML(nt, "delete")+ temp;
+		if (req.readyState == 4 && req.status == 200) {
+			var nt = JSON.parse(req.responseText);
+			document.getElementById("tweet_list")
+				.insertAdjacentHTML('afterbegin', getTweetHTML(nt, "delete"));
+		}
 	};
 	req.setRequestHeader("Content-Type","application/json");
 	
