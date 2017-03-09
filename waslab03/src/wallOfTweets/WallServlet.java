@@ -84,7 +84,6 @@ public class WallServlet extends HttpServlet {
 				String ntText = jo.getString("text");
 				JSONObject jo2 = new JSONObject(Database.insertTweet(ntAuthor, ntText));
 				String ntToken = jo2.get("id").toString();
-				//************************************************************************************************************
 				jo2.put("token", MD5(ntToken));
 				resp.getWriter().println(jo2.toString());
 			} catch (JSONException e) {
@@ -103,8 +102,13 @@ public class WallServlet extends HttpServlet {
 
 		try {
 			String uri = req.getRequestURI();
+			String token = req.getParameter("token");
+			
 			long id = Long.valueOf(uri.substring(TWEETS_URI.length()));
-			error = Database.deleteTweet(id);
+			
+			String idABorrar = String.valueOf(id);
+			
+			if (MD5(idABorrar).equals(token)) error = Database.deleteTweet(id);
 		}
 		catch (Exception e) {
 			new ServletException("Failed when parsing");

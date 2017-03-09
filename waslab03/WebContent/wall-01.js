@@ -49,12 +49,14 @@ function deleteHandler(tweetID) {
 	
 	*/	
 	
-	req = new XMLHttpRequest();
-	req.open('DELETE', tweetsURI+ "/" + tweetID, /*async*/true);
+	req = new XMLHttpRequest(); 
+	req.open('DELETE', tweetsURI+ "/" + tweetID + "?token=" + localStorage.getItem("token_"+tweetID), /*async*/true);
 	req.onreadystatechange = function() {
 		if (req.readyState == 4 && req.status == 200) {
 			document.getElementById("tweet_list")
 				.removeChild(document.getElementById("tweet_"+tweetID));
+			localStorage.removeItem("token_"+tweetID);
+			localStorage.removeItem("id_"+tweetID);
 		}
 	};
 	req.send(/*no params*/null);
@@ -80,7 +82,12 @@ function getTweets() {
 			var tts = JSON.parse(req.responseText);
 			
 			tts.forEach(function( element, index, array ) {
-				tweet_list += getTweetHTML(element, "like");				
+				if (!(element["id"] == localStorage.getItem("id_"+element["id"]))) {
+					tweet_list += getTweetHTML(element, "like");	
+				}
+				else {
+					tweet_list += getTweetHTML(element, "delete");
+				}
 			});
 			
 			document.getElementById("tweet_list").innerHTML = tweet_list;
@@ -90,7 +97,7 @@ function getTweets() {
 };
 
 
-function tweetHandler() {
+function tweetHandler() {	
 	var author = document.getElementById("tweet_author").value;
 	var text = document.getElementById("tweet_text").value;
 	/*
@@ -104,15 +111,12 @@ function tweetHandler() {
 			var nt = JSON.parse(req.responseText);
 			document.getElementById("tweet_list")
 				.insertAdjacentHTML('afterbegin', getTweetHTML(nt, "delete"));
+			localStorage.setItem ("id_"+nt.id, nt.id);
+			localStorage.setItem ("token_"+nt.id, nt.token);			
 		}
 	};
 	req.setRequestHeader("Content-Type","application/json");
-	
-	
 	req.send(JSON.stringify({ "author": author, "text": text }));
-	
-	//var mes1 = "Someone ({0}) wants to insert a new tweet ('{1}'),\n but this feature is not implemented yet!";
-	//alert(mes1.format(author, text));
 	
 	// clear form fields
 	document.getElementById("tweet_author").value = "";
